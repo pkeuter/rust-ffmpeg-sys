@@ -636,6 +636,31 @@ fn link_to_libraries(statik: bool) {
     if env::var("CARGO_FEATURE_BUILD_ZLIB").is_ok() && cfg!(target_os = "linux") {
         println!("cargo:rustc-link-lib=z");
     }
+
+    if env::var("CARGO_FEATURE_BUILD_LIB_NPP").is_ok() && cfg!(target_os = "linux") {
+        println!("cargo:rustc-link-lib=dylib=nppc");
+        println!("cargo:rustc-link-lib=dylib=nppif");
+        println!("cargo:rustc-link-lib=dylib=nppig");
+        println!("cargo:rustc-link-lib=dylib=nppim");
+        println!("cargo:rustc-link-lib=dylib=nppist");
+        println!("cargo:rustc-link-lib=dylib=nppicc");
+        println!("cargo:rustc-link-lib=dylib=nppisu");
+        println!("cargo:rustc-link-lib=dylib=nppitc");
+        println!("cargo:rustc-link-lib=dylib=npps");
+        println!("cargo:rustc-link-lib=dylib=nppial");
+        println!("cargo:rustc-link-lib=dylib=nppidei");
+        println!("cargo:rustc-link-lib=dylib=npps");
+    }
+
+    if env::var("CARGO_FEATURE_BUILD_CUDA_NVCC").is_ok() && cfg!(target_os = "linux") {
+        println!("cargo:rustc-link-lib=z");
+        println!("cargo:rustc-link-lib=m");
+        println!("cargo:rustc-link-lib=dylib=va");
+        println!("cargo:rustc-link-lib=dylib=va-drm");
+        println!("cargo:rustc-link-lib=dylib=va-x11");
+        println!("cargo:rustc-link-lib=dylib=vdpau");
+        println!("cargo:rustc-link-lib=dylib=X11");
+    }
 }
 
 fn main() {
