@@ -43,6 +43,9 @@ build-drm   = ["build"]
 build-nvenc = ["build"]
 build-pic   = ["build"]
 build-zlib  = ["build"]
+build-lib-npp  = ["build"]
+build-cuda-nvcc  = ["build"]
+build-autodetect = ["build"]
 
 # ssl
 build-lib-gnutls  = ["build"]

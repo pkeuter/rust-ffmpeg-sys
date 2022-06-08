@@ -236,9 +236,6 @@ fn build() -> io::Result<()> {
 
     configure.arg("--enable-pic");
 
-    // stop autodetected libraries enabling themselves, causing linking errors
-    configure.arg("--disable-autodetect");
-
     // do not build programs since we don't need them
     configure.arg("--disable-programs");
 
@@ -266,6 +263,9 @@ fn build() -> io::Result<()> {
 
     // the binary using ffmpeg-sys cannot be redistributed
     switch(&mut configure, "BUILD_LICENSE_NONFREE", "nonfree");
+
+    // stop autodetected libraries enabling themselves, causing linking errors
+    switch(&mut configure, "BUILD_AUTODETECT", "autodetect");
 
     let ffmpeg_major_version: u32 = env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap();
 
@@ -335,6 +335,8 @@ fn build() -> io::Result<()> {
     // other external libraries
     enable!(configure, "BUILD_LIB_DRM", "libdrm");
     enable!(configure, "BUILD_NVENC", "nvenc");
+    enable!(configure, "BUILD_CUDA_NVCC", "cuda-nvcc");
+    enable!(configure, "BUILD_LIB_NPP", "libnpp");
 
     // configure external protocols
     enable!(configure, "BUILD_LIB_SMBCLIENT", "libsmbclient");
