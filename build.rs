@@ -656,6 +656,10 @@ fn link_to_libraries(statik: bool) {
         println!("cargo:rustc-link-lib=npps");
     }
 
+    if env::var("CARGO_FEATURE_BUILD_LIB_X264").is_ok() && cfg!(target_os = "linux") {
+        println!("cargo:rustc-link-lib=x264");
+    }
+
     if env::var("CARGO_FEATURE_BUILD_CUDA_NVCC").is_ok() && cfg!(target_os = "linux") {
         println!("cargo:rustc-link-lib=z");
         println!("cargo:rustc-link-lib=m");
