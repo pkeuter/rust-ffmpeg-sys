@@ -4,6 +4,7 @@ extern crate num_cpus;
 extern crate pkg_config;
 
 use std::env;
+use std::fmt::Write as FmtWrite;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::PathBuf;
@@ -79,10 +80,7 @@ impl ParseCallbacks for Callbacks {
         let codec_flag_prefix = "AV_CODEC_FLAG_";
         let error_max_size = "AV_ERROR_MAX_STRING_SIZE";
 
-        if value >= i64::min_value() as i64
-            && value <= i64::max_value() as i64
-            && _name.starts_with(ch_layout_prefix)
-        {
+        if value >= i64::min_value() && _name.starts_with(ch_layout_prefix) {
             Some(IntKind::ULongLong)
         } else if value >= i32::min_value() as i64
             && value <= i32::max_value() as i64
@@ -423,7 +421,8 @@ fn check_features(
             includes_code.push_str(&include);
             includes_code.push('\n');
         }
-        includes_code.push_str(&format!(
+        let _ = write!(
+            includes_code,
             r#"
             #ifndef {var}_is_defined
             #ifndef {var}
@@ -435,13 +434,14 @@ fn check_features(
             #endif
         "#,
             var = var
-        ));
+        );
 
-        main_code.push_str(&format!(
+        let _ = write!(
+            main_code,
             r#"printf("[{var}]%d%d\n", {var}, {var}_is_defined);
             "#,
             var = var
-        ));
+        );
     }
 
     let version_check_info = [("avcodec", 56, 60, 0, 108)];
@@ -450,13 +450,15 @@ fn check_features(
     {
         for version_major in begin_version_major..end_version_major {
             for version_minor in begin_version_minor..end_version_minor {
-                main_code.push_str(&format!(
+                let _ = write!(
+                    main_code,
                     r#"printf("[{lib}_version_greater_than_{version_major}_{version_minor}]%d\n", LIB{lib_uppercase}_VERSION_MAJOR > {version_major} || (LIB{lib_uppercase}_VERSION_MAJOR == {version_major} && LIB{lib_uppercase}_VERSION_MINOR > {version_minor}));
-                    "#, lib = lib,
+                    "#,
+                    lib = lib,
                     lib_uppercase = lib.to_uppercase(),
                     version_major = version_major,
                     version_minor = version_minor
-                ));
+                );
             }
         }
     }
@@ -586,6 +588,7 @@ fn check_features(
         ("ffmpeg_4_3", 58, 91),
         ("ffmpeg_4_4", 58, 100),
         ("ffmpeg_5_0", 59, 18),
+        ("ffmpeg_5_1", 59, 37),
     ];
     for &(ffmpeg_version_flag, lavc_version_major, lavc_version_minor) in
         ffmpeg_lavc_versions.iter()
@@ -628,7 +631,7 @@ fn maybe_search_include(include_paths: &[PathBuf], header: &str) -> Option<Strin
 fn link_to_libraries(statik: bool) {
     let ffmpeg_ty = if statik { "static" } else { "dylib" };
     for lib in LIBRARIES {
-        let feat_is_enabled = lib.feature_name().and_then(|f| env::var(&f).ok()).is_some();
+        let feat_is_enabled = lib.feature_name().and_then(|f| env::var(f).ok()).is_some();
         if !lib.is_feature || feat_is_enabled {
             println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, lib.name);
         }
@@ -1196,11 +1199,16 @@ fn main() {
         .blocklist_function("y1l")
         .blocklist_function("ynl")
         .opaque_type("__mingw_ldbl_type_t")
-        .rustified_enum("*")
         .prepend_enum_name(false)
         .derive_eq(true)
         .size_t_is_usize(true)
         .parse_callbacks(Box::new(Callbacks));
+
+    if env::var("CARGO_FEATURE_NON_EXHAUSTIVE_ENUMS").is_ok() {
+        builder = builder.rustified_non_exhaustive_enum("*");
+    } else {
+        builder = builder.rustified_enum("*");
+    }
 
     // The input headers we would like to generate
     // bindings for.
@@ -1254,6 +1262,9 @@ fn main() {
         .header(search_include(&include_paths, "libavutil/camellia.h"))
         .header(search_include(&include_paths, "libavutil/cast5.h"))
         .header(search_include(&include_paths, "libavutil/channel_layout.h"))
+        // Here until https://github.com/rust-lang/rust-bindgen/issues/2192 /
+        // https://github.com/rust-lang/rust-bindgen/issues/258 is fixed.
+        .header("channel_layout_fixed.h")
         .header(search_include(&include_paths, "libavutil/cpu.h"))
         .header(search_include(&include_paths, "libavutil/crc.h"))
         .header(search_include(&include_paths, "libavutil/dict.h"))

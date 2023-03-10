@@ -1,6 +1,6 @@
 [package]
 name    = "ffmpeg-sys-next"
-version = "5.0.1"
+version = "5.1.1"
 build   = "build.rs"
 links   = "ffmpeg"
 
@@ -32,6 +32,9 @@ default  = ["avcodec", "avdevice", "avfilter", "avformat", "swresample", "swscal
 
 static = []
 build  = ["static"]
+
+# mark enums in generated bindings as #[non_exhaustive]
+non-exhaustive-enums = []
 
 # licensing
 build-license-gpl      = ["build"]
